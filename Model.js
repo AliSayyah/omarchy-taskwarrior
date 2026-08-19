@@ -135,6 +135,19 @@ function activeCount(tasks) {
   }).length
 }
 
+function paginate(tasks, pageIndex, pageSize) {
+  var list = Array.isArray(tasks) ? tasks : []
+  var size = Math.max(1, parseInt(pageSize, 10) || 8)
+  var index = Math.max(0, parseInt(pageIndex, 10) || 0)
+  var start = index * size
+  return {
+    tasks: list.slice(start, start + size),
+    start: start,
+    hasPrevious: index > 0,
+    hasNext: start + size < list.length
+  }
+}
+
 function taskDetails(task) {
   var item = task || {}
   var details = []
@@ -187,6 +200,7 @@ if (typeof module !== "undefined") {
     isToday: isToday,
     filterTasks: filterTasks,
     activeCount: activeCount,
+    paginate: paginate,
     taskDetails: taskDetails,
     buildEditModifiers: buildEditModifiers
   }

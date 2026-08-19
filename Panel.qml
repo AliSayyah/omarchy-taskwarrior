@@ -23,7 +23,6 @@ Panel {
     taskEditor.end()
     controller.setFilter(filter)
     Qt.callLater(function() {
-      taskList.resetScroll()
       root.focusDefault()
     })
   }
@@ -244,17 +243,20 @@ Panel {
           width: parent.width
           tasks: controller.tasks
           totalCount: controller.matchingTasks.length
+          pageIndex: controller.pageIndex
+          pageSize: controller.pageSize
           filter: controller.currentFilter
           errorText: controller.visibleError
           busy: controller.busy
           loading: controller.currentFilter === "done" && controller.completedLoading
-          hasMore: controller.matchingTasks.length > controller.tasks.length
-            || (controller.currentFilter === "done" && controller.completedHasMore)
+          hasPrevious: controller.hasPrevious
+          hasNext: controller.hasNext
           remoteHasMore: controller.currentFilter === "done" && controller.completedHasMore
           foreground: root.foreground
           urgent: root.urgent
           fontFamily: root.fontFamily
-          onLoadMoreRequested: controller.loadMore()
+          onPreviousPageRequested: controller.previousPage()
+          onNextPageRequested: controller.nextPage()
           onTrackingRequested: function(task) { controller.toggleTracking(task) }
           onEditRequested: function(task) { root.startEdit(task) }
           onCompleteRequested: function(uuid) { controller.completeTask(uuid) }

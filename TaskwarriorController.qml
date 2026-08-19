@@ -19,7 +19,9 @@ Item {
   property bool completedLoaded: false
   property bool completedHasMore: false
   property int completedFetchLimit: 50
-  property int visibleTaskLimit: 8
+  property int pageIndex: 0
+  property int pageSize: 8
+  property bool advanceAfterCompletedRefresh: false
 
   readonly property bool busy: actionProc.running
   readonly property bool installRunning: installProc.running
@@ -27,7 +29,12 @@ Item {
   readonly property var matchingTasks: currentFilter === "done"
     ? completedTasks
     : Model.filterTasks(allTasks, currentFilter, Date.now())
-  readonly property var tasks: matchingTasks.slice(0, visibleTaskLimit)
+  readonly property var page: Model.paginate(matchingTasks, pageIndex, pageSize)
+  readonly property int pageStart: page.start
+  readonly property var tasks: page.tasks
+  readonly property bool hasPrevious: page.hasPrevious
+  readonly property bool hasNext: page.hasNext
+    || (currentFilter === "done" && completedHasMore)
   readonly property string visibleError: currentFilter === "done" ? completedError : errorText
   readonly property int total: allTasks.length
   readonly property int readyCount: Model.filterTasks(allTasks, "ready", Date.now()).length
@@ -89,20 +96,30 @@ Item {
 
   function setFilter(filter) {
     currentFilter = filter
-    visibleTaskLimit = 8
+    pageIndex = 0
+    advanceAfterCompletedRefresh = false
     if (filter === "done") refreshCompleted()
   }
 
-  function loadMore() {
-    if (visibleTaskLimit < matchingTasks.length) {
-      visibleTaskLimit += 8
+  function previousPage() {
+    if (pageIndex > 0) pageIndex--
+  }
+
+  function nextPage() {
+    if (pageStart + pageSize < matchingTasks.length) {
+      pageIndex++
       return
     }
     if (currentFilter === "done" && completedLoaded && completedHasMore && !completedRefreshProc.running) {
       completedFetchLimit += 50
-      visibleTaskLimit += 8
+      advanceAfterCompletedRefresh = true
       refreshCompleted()
     }
+  }
+
+  function clampPage() {
+    var maximum = Math.max(0, Math.ceil(matchingTasks.length / pageSize) - 1)
+    if (pageIndex > maximum && !(currentFilter === "done" && completedHasMore)) pageIndex = maximum
   }
 
   function addTask(description) {
@@ -156,6 +173,7 @@ Item {
     var result = Model.parseExport(raw)
     allTasks = result.tasks
     errorText = result.error
+    if (currentFilter !== "done") clampPage()
   }
 
   function applyCompletedExport(raw) {
@@ -164,6 +182,11 @@ Item {
     completedLoaded = result.error === ""
     completedHasMore = result.error === "" && result.tasks.length >= completedFetchLimit
     completedError = result.error
+    if (advanceAfterCompletedRefresh) {
+      advanceAfterCompletedRefresh = false
+      if (pageStart + pageSize < result.tasks.length) pageIndex++
+    }
+    clampPage()
   }
 
   Process {

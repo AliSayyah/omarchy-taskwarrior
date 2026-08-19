@@ -21,7 +21,8 @@ for (const component of components)
   assert.ok(fs.existsSync(path.join(root, "components", component)), `missing ${component}`)
 
 const taskList = fs.readFileSync(path.join(root, "components", "TaskList.qml"), "utf8")
-assert.ok(taskList.includes("WheelHandler {"), "Task list must handle wheel scrolling")
-assert.ok(taskList.includes("ScrollBar.vertical:"), "Task list must expose a native scrollbar")
+assert.ok(taskList.includes("previousPageRequested"), "Task list must expose previous-page navigation")
+assert.ok(taskList.includes("nextPageRequested"), "Task list must expose next-page navigation")
+assert.ok(!taskList.includes("Flickable {"), "Task list pagination must not depend on scrolling")
 
 console.log("taskwarrior structure checks passed")

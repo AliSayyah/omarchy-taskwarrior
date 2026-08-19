@@ -33,6 +33,18 @@ assert.deepEqual(model.filterTasks(parsed.tasks, "today", now.getTime()).map(tas
 assert.deepEqual(model.filterTasks(parsed.tasks, "overdue", now.getTime()).map(task => task.uuid), ["c"])
 assert.equal(model.filterTasks(parsed.tasks, "all", now.getTime()).length, 5)
 assert.equal(model.activeCount(parsed.tasks), 1)
+assert.deepEqual(model.paginate([1, 2, 3, 4, 5], 1, 2), {
+  tasks: [3, 4],
+  start: 2,
+  hasPrevious: true,
+  hasNext: true
+})
+assert.deepEqual(model.paginate([1, 2, 3, 4, 5], 2, 2), {
+  tasks: [5],
+  start: 4,
+  hasPrevious: true,
+  hasNext: false
+})
 assert.equal(model.taskDateTime(taskTimestamp(now)), "2026-08-19T12:00")
 assert.equal(model.formatLocalDateTime(model.parseLocalDateTime("2026-08-20T14:30")), "2026-08-20T14:30")
 assert.equal(model.parseLocalDateTime("2026-02-30T12:00"), null)

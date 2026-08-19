@@ -10,7 +10,7 @@ A native [Omarchy](https://omarchy.org/) QuickShell plugin for managing [Taskwar
 - Inline task editing for description, project, priority, and due date
 - Native calendar and time picker
 - Active and overdue bar indicators
-- Infinite scrolling through pending and completed tasks
+- Paginated pending and completed task lists
 - Theme-aware Omarchy controls and colors
 - In-panel Taskwarrior installation prompt when `task` is unavailable
 
@@ -28,7 +28,7 @@ The widget defaults to the right section of the bar. Taskwarrior is available fr
 - Right-click the widget to refresh.
 - Use the filter buttons to switch task views.
 - Use the row actions to start or stop tracking, edit, or complete a task.
-- Scroll the task list to progressively load more rows.
+- Use Previous and Next to move through task pages.
 
 ## Update
 
