@@ -1,5 +1,6 @@
 import "../Model.js" as Model
 import QtQuick
+import QtQuick.Layouts
 import qs.Commons
 import qs.Ui
 
@@ -10,8 +11,18 @@ CursorSurface {
   property bool busy: false
   property color urgent: Color.urgent
   property string fontFamily: Style.font.family
+
   readonly property bool completed: task.status === "completed"
   readonly property bool overdue: !completed && Model.isOverdue(task, Date.now())
+  readonly property string priorityLabel: {
+    if (task.priority === "H") return "HIGH"
+    if (task.priority === "M") return "MEDIUM"
+    if (task.priority === "L") return "LOW"
+    return ""
+  }
+  readonly property color priorityColor: task.priority === "H"
+    ? urgent
+    : (task.priority === "M" ? Color.accent : Qt.darker(foreground, 1.3))
   readonly property string contextText: {
     var parts = []
     if (task.project) parts.push(String(task.project))
@@ -20,6 +31,10 @@ CursorSurface {
       parts.push(task.tags.map(function(tag) { return "+" + tag }).join(" "))
     return parts.join("  ·  ")
   }
+  readonly property string stateGlyph: completed ? "󰄬" : (task.start ? "󰐊" : (overdue ? "󰃰" : "󰄱"))
+  readonly property color stateColor: completed
+    ? Qt.darker(foreground, 1.45)
+    : (task.start ? Color.accent : (overdue ? urgent : Qt.darker(foreground, 1.35)))
   readonly property bool actionsHot: !completed && (rowHover.hovered
     || trackingButton.activeFocus || editButton.activeFocus || doneButton.activeFocus)
 
@@ -27,146 +42,155 @@ CursorSurface {
   signal editRequested(var task)
   signal completeRequested(string uuid)
 
-  implicitHeight: taskRow.implicitHeight + Style.space(16)
+  implicitHeight: contentRow.implicitHeight + Style.space(18)
   bordered: true
   hasCursor: actionsHot
   current: !completed && !!task.start
+  color: hasCursor
+    ? fill
+    : (current ? currentFill : Style.normalFillFor(foreground, accent))
 
   HoverHandler { id: rowHover }
 
   Rectangle {
-    visible: !!root.task.start || root.completed
+    visible: !!root.task.start || root.overdue || root.completed
     anchors.left: parent.left
-    anchors.leftMargin: Style.space(5)
+    anchors.leftMargin: Style.space(4)
     anchors.verticalCenter: parent.verticalCenter
     width: Style.space(3)
-    height: parent.height - Style.space(14)
-    color: root.completed ? Qt.darker(root.foreground, 1.45) : Color.accent
+    height: parent.height - Style.space(12)
+    color: root.stateColor
     radius: Style.cornerRadius
   }
 
-  Item {
-    id: taskRow
+  RowLayout {
+    id: contentRow
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
-    anchors.leftMargin: Style.space(14)
-    anchors.rightMargin: Style.space(10)
-    implicitHeight: Math.max(labels.implicitHeight, actionRow.implicitHeight)
+    anchors.leftMargin: Style.space(12)
+    anchors.rightMargin: Style.space(9)
+    spacing: Style.space(10)
 
-    Column {
-      id: labels
-      anchors.left: parent.left
-      anchors.right: actionRow.left
-      anchors.rightMargin: Style.space(10)
-      anchors.verticalCenter: parent.verticalCenter
+    Text {
+      text: root.stateGlyph
+      color: root.stateColor
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.iconLarge
+      Layout.alignment: Qt.AlignVCenter
+    }
+
+    ColumnLayout {
+      Layout.fillWidth: true
       spacing: Style.space(5)
 
       Text {
-        width: parent.width
+        Layout.fillWidth: true
         text: root.task.description || "Untitled task"
-        color: root.completed ? Qt.darker(root.foreground, 1.35) : root.foreground
+        color: root.completed ? Qt.darker(root.foreground, 1.3) : root.foreground
         font.family: root.fontFamily
-        font.pixelSize: Style.font.body
-        font.bold: !root.completed && !!root.task.start
+        font.pixelSize: Style.font.subtitle
+        font.bold: !root.completed && (!!root.task.start || root.task.priority === "H")
         font.strikeout: root.completed
         elide: Text.ElideRight
       }
 
-      Item {
-        width: parent.width
-        visible: priorityPill.visible || root.contextText !== "" || dueText.visible
-        height: visible ? Math.max(priorityPill.implicitHeight, contextLabel.implicitHeight, dueText.implicitHeight) : 0
+      RowLayout {
+        visible: priorityPill.visible || duePill.visible || contextLabel.visible
+        Layout.fillWidth: true
+        spacing: Style.space(6)
 
         StatusPill {
           id: priorityPill
-          visible: !!root.task.priority
-          width: visible ? implicitWidth : 0
-          anchors.left: parent.left
-          anchors.verticalCenter: parent.verticalCenter
-          text: String(root.task.priority || "")
-          tint: root.task.priority === "H"
-            ? root.urgent
-            : (root.task.priority === "M" ? Color.accent : Qt.darker(root.foreground, 1.35))
+          visible: root.priorityLabel !== ""
+          text: root.priorityLabel
+          tint: root.priorityColor
           fontFamily: root.fontFamily
+          Layout.alignment: Qt.AlignVCenter
+        }
+
+        StatusPill {
+          id: duePill
+          visible: root.completed ? !!root.task.end : !!root.task.due
+          text: root.completed
+            ? "󰄬 " + Model.taskDate(root.task.end)
+            : (root.overdue ? "󰃰 " : "󰥔 ") + Model.taskDate(root.task.due)
+          tint: root.overdue ? root.urgent : Qt.darker(root.foreground, 1.3)
+          fontFamily: root.fontFamily
+          Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
           id: contextLabel
-          anchors.left: priorityPill.right
-          anchors.leftMargin: priorityPill.visible ? Style.space(7) : 0
-          anchors.right: dueText.left
-          anchors.rightMargin: dueText.visible ? Style.space(8) : 0
-          anchors.verticalCenter: parent.verticalCenter
+          visible: root.contextText !== ""
+          Layout.fillWidth: true
           text: root.contextText
           color: Qt.darker(root.foreground, 1.45)
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption
           elide: Text.ElideRight
-        }
-
-        Text {
-          id: dueText
-          visible: root.completed ? !!root.task.end : !!root.task.due
-          anchors.right: parent.right
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.completed
-            ? "󰄬 " + Model.taskDate(root.task.end)
-            : (root.overdue ? "󰃰 " : "󰥔 ") + Model.taskDate(root.task.due)
-          color: root.overdue ? root.urgent : Qt.darker(root.foreground, 1.35)
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.caption
-          font.bold: root.overdue
+          Layout.alignment: Qt.AlignVCenter
         }
       }
     }
 
-    Row {
-      id: actionRow
+    BorderSurface {
       visible: !root.completed
-      width: visible ? implicitWidth : 0
-      height: visible ? implicitHeight : 0
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: Style.space(3)
-      opacity: root.actionsHot ? 1 : 0.34
+      implicitWidth: actionRow.implicitWidth + Style.space(8)
+      implicitHeight: actionRow.implicitHeight + Style.space(6)
+      color: root.actionsHot
+        ? Style.normalFillFor(root.foreground, Color.accent)
+        : "transparent"
+      borderSpec: root.actionsHot
+        ? Border.controlSpec("normal", root.foreground, Color.accent)
+        : Border.none()
+      radius: Style.cornerRadius
+      opacity: root.actionsHot ? 1 : 0.48
+      Layout.alignment: Qt.AlignVCenter
 
-      PanelActionButton {
-        id: trackingButton
-        iconText: root.task.start ? "󰓛" : "󰐊"
-        tooltipText: root.task.start ? "Stop task" : "Start task"
-        foreground: root.foreground
-        hoverColor: Color.accent
-        fontFamily: root.fontFamily
-        enabled: !root.busy
-        focusable: true
-        onClicked: root.trackingRequested(root.task)
-      }
+      Row {
+        id: actionRow
+        anchors.centerIn: parent
+        spacing: Style.space(2)
 
-      PanelActionButton {
-        id: editButton
-        iconText: "󰏫"
-        tooltipText: "Edit task"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-        enabled: !root.busy
-        focusable: true
-        onClicked: root.editRequested(root.task)
-      }
+        PanelActionButton {
+          id: trackingButton
+          iconText: root.task.start ? "󰓛" : "󰐊"
+          tooltipText: root.task.start ? "Stop task" : "Start task"
+          foreground: root.foreground
+          hoverColor: Color.accent
+          fontFamily: root.fontFamily
+          enabled: !root.busy
+          focusable: true
+          onClicked: root.trackingRequested(root.task)
+        }
 
-      PanelActionButton {
-        id: doneButton
-        iconText: "󰄬"
-        tooltipText: "Complete task"
-        foreground: root.foreground
-        hoverColor: Color.accent
-        fontFamily: root.fontFamily
-        enabled: !root.busy
-        focusable: true
-        onClicked: root.completeRequested(String(root.task.uuid || ""))
+        PanelActionButton {
+          id: editButton
+          iconText: "󰏫"
+          tooltipText: "Edit task"
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          enabled: !root.busy
+          focusable: true
+          onClicked: root.editRequested(root.task)
+        }
+
+        PanelActionButton {
+          id: doneButton
+          iconText: "󰄬"
+          tooltipText: "Complete task"
+          foreground: root.foreground
+          hoverColor: Color.accent
+          fontFamily: root.fontFamily
+          enabled: !root.busy
+          focusable: true
+          onClicked: root.completeRequested(String(root.task.uuid || ""))
+        }
       }
 
       Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+      Behavior on color { ColorAnimation { duration: 120 } }
     }
   }
 }
