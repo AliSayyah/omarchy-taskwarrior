@@ -123,8 +123,8 @@ CursorSurface {
           id: duePill
           visible: root.completed ? !!root.task.end : !!root.task.due
           text: root.completed
-            ? "󰄬 " + Model.taskDate(root.task.end)
-            : (root.overdue ? "󰃰 " : "󰥔 ") + Model.taskDate(root.task.due)
+            ? "󰄬 " + Model.taskDateTimeLabel(root.task.end)
+            : (root.overdue ? "󰃰 " : "󰥔 ") + Model.taskDateTimeLabel(root.task.due)
           tint: root.overdue ? root.urgent : Qt.darker(root.foreground, 1.3)
           fontFamily: root.fontFamily
           Layout.alignment: Qt.AlignVCenter

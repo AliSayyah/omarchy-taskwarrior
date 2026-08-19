@@ -67,6 +67,10 @@ function taskDateTime(value) {
   return localDateTimeKey(parseTimestamp(value))
 }
 
+function taskDateTimeLabel(value) {
+  return taskDateTime(value).replace("T", " · ")
+}
+
 function parseLocalDateTime(value) {
   var match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/)
   if (!match) return null
@@ -194,6 +198,7 @@ if (typeof module !== "undefined") {
     localDateTimeKey: localDateTimeKey,
     taskDate: taskDate,
     taskDateTime: taskDateTime,
+    taskDateTimeLabel: taskDateTimeLabel,
     parseLocalDateTime: parseLocalDateTime,
     formatLocalDateTime: formatLocalDateTime,
     isOverdue: isOverdue,

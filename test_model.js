@@ -46,6 +46,7 @@ assert.deepEqual(model.paginate([1, 2, 3, 4, 5], 2, 2), {
   hasNext: false
 })
 assert.equal(model.taskDateTime(taskTimestamp(now)), "2026-08-19T12:00")
+assert.equal(model.taskDateTimeLabel(taskTimestamp(now)), "2026-08-19 · 12:00")
 assert.equal(model.formatLocalDateTime(model.parseLocalDateTime("2026-08-20T14:30")), "2026-08-20T14:30")
 assert.equal(model.parseLocalDateTime("2026-02-30T12:00"), null)
 

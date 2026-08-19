@@ -131,8 +131,8 @@ Column {
     StatusPill {
       visible: root.task && (root.completed ? !!root.task.end : !!root.task.due)
       text: root.completed
-        ? "󰄬 " + Model.taskDate(root.task ? root.task.end : "")
-        : (root.overdue ? "󰃰 " : "󰥔 ") + Model.taskDate(root.task ? root.task.due : "")
+        ? "󰄬 " + Model.taskDateTimeLabel(root.task ? root.task.end : "")
+        : (root.overdue ? "󰃰 " : "󰥔 ") + Model.taskDateTimeLabel(root.task ? root.task.due : "")
       tint: root.overdue ? root.urgent : root.foreground
       fontFamily: root.fontFamily
     }
