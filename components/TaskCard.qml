@@ -35,9 +35,11 @@ CursorSurface {
   readonly property color stateColor: completed
     ? Qt.darker(foreground, 1.45)
     : (task.start ? Color.accent : (overdue ? urgent : Qt.darker(foreground, 1.35)))
-  readonly property bool actionsHot: !completed && (rowHover.hovered
-    || trackingButton.activeFocus || editButton.activeFocus || doneButton.activeFocus)
+  readonly property bool detailsAvailable: descriptionText.truncated
+  readonly property bool actionsHot: rowHover.hovered || detailsButton.activeFocus
+    || trackingButton.activeFocus || editButton.activeFocus || doneButton.activeFocus
 
+  signal detailsRequested(var task)
   signal trackingRequested(var task)
   signal editRequested(var task)
   signal completeRequested(string uuid)
@@ -85,6 +87,7 @@ CursorSurface {
       spacing: Style.space(5)
 
       Text {
+        id: descriptionText
         Layout.fillWidth: true
         text: root.task.description || "Untitled task"
         color: root.completed ? Qt.darker(root.foreground, 1.3) : root.foreground
@@ -92,7 +95,16 @@ CursorSurface {
         font.pixelSize: Style.font.subtitle
         font.bold: !root.completed && (!!root.task.start || root.task.priority === "H")
         font.strikeout: root.completed
+        wrapMode: Text.Wrap
+        maximumLineCount: 2
         elide: Text.ElideRight
+
+        MouseArea {
+          anchors.fill: parent
+          enabled: root.detailsAvailable
+          cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+          onClicked: root.detailsRequested(root.task)
+        }
       }
 
       RowLayout {
@@ -135,7 +147,7 @@ CursorSurface {
     }
 
     BorderSurface {
-      visible: !root.completed
+      visible: !root.completed || root.detailsAvailable
       implicitWidth: actionRow.implicitWidth + Style.space(8)
       implicitHeight: actionRow.implicitHeight + Style.space(6)
       color: root.actionsHot
@@ -154,7 +166,24 @@ CursorSurface {
         spacing: Style.space(2)
 
         PanelActionButton {
+          id: detailsButton
+          visible: root.detailsAvailable
+          width: visible ? implicitWidth : 0
+          height: visible ? implicitHeight : 0
+          iconText: "󰅀"
+          tooltipText: "View full task"
+          foreground: root.foreground
+          hoverColor: Color.accent
+          fontFamily: root.fontFamily
+          focusable: true
+          onClicked: root.detailsRequested(root.task)
+        }
+
+        PanelActionButton {
           id: trackingButton
+          visible: !root.completed
+          width: visible ? implicitWidth : 0
+          height: visible ? implicitHeight : 0
           iconText: root.task.start ? "󰓛" : "󰐊"
           tooltipText: root.task.start ? "Stop task" : "Start task"
           foreground: root.foreground
@@ -167,6 +196,9 @@ CursorSurface {
 
         PanelActionButton {
           id: editButton
+          visible: !root.completed
+          width: visible ? implicitWidth : 0
+          height: visible ? implicitHeight : 0
           iconText: "󰏫"
           tooltipText: "Edit task"
           foreground: root.foreground
@@ -178,6 +210,9 @@ CursorSurface {
 
         PanelActionButton {
           id: doneButton
+          visible: !root.completed
+          width: visible ? implicitWidth : 0
+          height: visible ? implicitHeight : 0
           iconText: "󰄬"
           tooltipText: "Complete task"
           foreground: root.foreground

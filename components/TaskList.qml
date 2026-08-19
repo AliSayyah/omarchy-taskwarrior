@@ -22,6 +22,7 @@ Column {
 
   signal previousPageRequested()
   signal nextPageRequested()
+  signal detailsRequested(var task)
   signal trackingRequested(var task)
   signal editRequested(var task)
   signal completeRequested(string uuid)
@@ -149,6 +150,7 @@ Column {
         foreground: root.foreground
         urgent: root.urgent
         fontFamily: root.fontFamily
+        onDetailsRequested: function(task) { root.detailsRequested(task) }
         onTrackingRequested: function(task) { root.trackingRequested(task) }
         onEditRequested: function(task) { root.editRequested(task) }
         onCompleteRequested: function(uuid) { root.completeRequested(uuid) }

@@ -10,10 +10,12 @@ Panel {
   readonly property color urgent: bar ? bar.urgent : Color.urgent
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property bool editing: taskEditor.active
+  readonly property bool viewingDetails: taskDetails.active
+  readonly property bool focusedMode: editing || viewingDetails
 
   function focusDefault() {
     Qt.callLater(function() {
-      if (!root.opened || !controller.taskAvailable || root.editing) return
+      if (!root.opened || !controller.taskAvailable || root.focusedMode) return
       if (controller.currentFilter === "done") taskList.forceActiveFocus()
       else composer.focusInput()
     })
@@ -21,6 +23,7 @@ Panel {
 
   function setFilter(filter) {
     taskEditor.end()
+    taskDetails.end()
     controller.setFilter(filter)
     Qt.callLater(function() {
       root.focusDefault()
@@ -29,8 +32,22 @@ Panel {
 
   function startEdit(task) {
     if (!task || !task.uuid || controller.busy) return
+    taskDetails.end()
     controller.clearError()
     taskEditor.begin(task)
+  }
+
+  function showDetails(task) {
+    if (!task || !task.uuid) return
+    taskEditor.end()
+    controller.clearError()
+    taskDetails.begin(task)
+  }
+
+  function closeDetails() {
+    taskDetails.end()
+    controller.clearError()
+    focusDefault()
   }
 
   function cancelEdit() {
@@ -50,6 +67,7 @@ Panel {
       focusDefault()
     } else {
       taskEditor.end()
+      taskDetails.end()
     }
   }
 
@@ -58,6 +76,7 @@ Panel {
     onActionSucceeded: function(kind) {
       if (kind === "add") composer.clear()
       if (kind === "edit") root.cancelEdit()
+      else if (root.viewingDetails) root.closeDetails()
       else root.focusDefault()
     }
   }
@@ -118,13 +137,17 @@ Panel {
     owner: root
     bar: root.bar
     open: root.opened
-    focusTarget: controller.currentFilter === "done" ? taskList : composer
+    focusTarget: root.editing
+      ? taskEditor
+      : (root.viewingDetails ? taskDetails : (controller.currentFilter === "done" ? taskList : composer))
     contentWidth: panel.fittedContentWidth(Style.space(440))
     contentHeight: panel.fittedContentHeight(content.implicitHeight)
 
     Item {
       anchors.fill: parent
-      Keys.onEscapePressed: root.editing ? root.cancelEdit() : root.close()
+      Keys.onEscapePressed: root.editing
+        ? root.cancelEdit()
+        : (root.viewingDetails ? root.closeDetails() : root.close())
 
       Column {
         id: content
@@ -184,7 +207,7 @@ Panel {
         }
 
         TaskFilters {
-          visible: controller.taskAvailable && !root.editing
+          visible: controller.taskAvailable && !root.focusedMode
           anchors.horizontalCenter: parent.horizontalCenter
           options: controller.filterOptions
           value: controller.currentFilter
@@ -195,7 +218,7 @@ Panel {
 
         TaskComposer {
           id: composer
-          visible: controller.taskAvailable && !root.editing && controller.currentFilter !== "done"
+          visible: controller.taskAvailable && !root.focusedMode && controller.currentFilter !== "done"
           width: parent.width
           busy: controller.busy
           foreground: root.foreground
@@ -214,8 +237,21 @@ Panel {
           onCancelRequested: root.cancelEdit()
         }
 
+        TaskDetails {
+          id: taskDetails
+          width: parent.width
+          busy: controller.busy
+          foreground: root.foreground
+          urgent: root.urgent
+          fontFamily: root.fontFamily
+          onCloseRequested: root.closeDetails()
+          onTrackingRequested: function(task) { controller.toggleTracking(task) }
+          onEditRequested: function(task) { root.startEdit(task) }
+          onCompleteRequested: function(uuid) { controller.completeTask(uuid) }
+        }
+
         BorderSurface {
-          visible: root.editing && controller.errorText !== ""
+          visible: root.focusedMode && controller.errorText !== ""
           width: parent.width
           implicitHeight: editorError.implicitHeight + Style.space(12)
           color: Style.normalFillFor(root.urgent, Color.accent)
@@ -239,7 +275,7 @@ Panel {
 
         TaskList {
           id: taskList
-          visible: controller.taskAvailable && !root.editing
+          visible: controller.taskAvailable && !root.focusedMode
           width: parent.width
           tasks: controller.tasks
           totalCount: controller.matchingTasks.length
@@ -257,6 +293,7 @@ Panel {
           fontFamily: root.fontFamily
           onPreviousPageRequested: controller.previousPage()
           onNextPageRequested: controller.nextPage()
+          onDetailsRequested: function(task) { root.showDetails(task) }
           onTrackingRequested: function(task) { controller.toggleTracking(task) }
           onEditRequested: function(task) { root.startEdit(task) }
           onCompleteRequested: function(uuid) { controller.completeTask(uuid) }

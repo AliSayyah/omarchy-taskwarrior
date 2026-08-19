@@ -20,7 +20,7 @@ Item {
   property bool completedHasMore: false
   property int completedFetchLimit: 50
   property int pageIndex: 0
-  property int pageSize: 8
+  property int pageSize: 5
   property bool advanceAfterCompletedRefresh: false
 
   readonly property bool busy: actionProc.running

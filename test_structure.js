@@ -11,7 +11,8 @@ const components = [
   "TaskEditor.qml",
   "DateTimePicker.qml",
   "TaskList.qml",
-  "TaskCard.qml"
+  "TaskCard.qml",
+  "TaskDetails.qml"
 ]
 
 assert.ok(panel.split("\n").length < 350, "Panel.qml should remain a thin composition root")
@@ -26,5 +27,10 @@ assert.ok(taskList.includes("nextPageRequested"), "Task list must expose next-pa
 assert.ok(!taskList.includes("Flickable {"), "Task list pagination must not depend on scrolling")
 assert.match(taskList, /enabled: root\.hasPrevious && !root\.loading/, "Previous must disable without a previous page")
 assert.match(taskList, /enabled: root\.hasNext && !root\.loading/, "Next must disable without a next page")
+
+const taskCard = fs.readFileSync(path.join(root, "components", "TaskCard.qml"), "utf8")
+assert.ok(taskCard.includes("maximumLineCount: 2"), "Task cards must cap previews at two lines")
+assert.ok(taskCard.includes("descriptionText.truncated"), "Task cards must detect truncated descriptions")
+assert.match(controller, /property int pageSize: 5/, "Two-line task cards must use five-item pages")
 
 console.log("taskwarrior structure checks passed")
