@@ -12,7 +12,11 @@ const components = [
   "DateTimePicker.qml",
   "TaskList.qml",
   "TaskCard.qml",
-  "TaskDetails.qml"
+  "TaskDetails.qml",
+  "TaskSearch.qml",
+  "TaskActionNotice.qml",
+  "TagPicker.qml",
+  "TaskErrorNotice.qml"
 ]
 
 assert.ok(panel.split("\n").length < 350, "Panel.qml should remain a thin composition root")
@@ -35,5 +39,16 @@ assert.ok(!taskCard.includes("detailsAvailable"), "Task details must not depend 
 assert.ok(taskCard.includes("visible: root.hasMetadata"), "Metadata row visibility must derive from task data")
 assert.ok(!taskCard.includes("priorityPill.visible || duePill.visible"), "Metadata visibility must not depend on hidden children")
 assert.match(controller, /property int pageSize: 5/, "Two-line task cards must use five-item pages")
+assert.match(controller, /"status:pending", "or", "status:waiting"/, "Refresh must include waiting tasks")
+assert.match(controller, /"modify", "status:pending"/, "Completed tasks must be directly restorable")
+assert.ok(taskCard.includes("restoreRequested"), "Completed task cards must expose restore")
+
+const composer = fs.readFileSync(path.join(root, "components", "TaskComposer.qml"), "utf8")
+assert.ok(composer.includes("TagPicker"), "Smart add must expose tag chips")
+assert.ok(composer.includes("DateTimePicker"), "Smart add must expose the native due picker")
+
+const search = fs.readFileSync(path.join(root, "components", "TaskSearch.qml"), "utf8")
+assert.ok(search.includes("Search tasks, projects, tags, or notes"), "Task search must cover visible metadata")
+assert.ok(search.includes('kind: "blocked"') && search.includes('kind: "waiting"'), "Task filters must expose blocked and waiting states")
 
 console.log("taskwarrior structure checks passed")

@@ -16,6 +16,7 @@ Column {
   property bool hasPrevious: false
   property bool hasNext: false
   property bool remoteHasMore: false
+  property bool constrained: false
   property color foreground: Color.foreground
   property color urgent: Color.urgent
   property string fontFamily: Style.font.family
@@ -26,8 +27,10 @@ Column {
   signal trackingRequested(var task)
   signal editRequested(var task)
   signal completeRequested(string uuid)
+  signal restoreRequested(string uuid)
 
   function emptyTitle() {
+    if (constrained) return "No matching tasks"
     if (filter === "overdue") return "Nothing overdue"
     if (filter === "today") return "Nothing due today"
     if (filter === "ready") return "Nothing ready"
@@ -36,6 +39,7 @@ Column {
   }
 
   function emptyDetail() {
+    if (constrained) return "Try a different search or filter."
     if (filter === "all") return "Add one above when something comes up."
     if (filter === "done") return "Finished tasks will appear here."
     return "You're clear for now."
@@ -154,12 +158,13 @@ Column {
         onTrackingRequested: function(task) { root.trackingRequested(task) }
         onEditRequested: function(task) { root.editRequested(task) }
         onCompleteRequested: function(uuid) { root.completeRequested(uuid) }
+        onRestoreRequested: function(uuid) { root.restoreRequested(uuid) }
       }
     }
   }
 
   Item {
-    visible: root.tasks.length > 0
+    visible: root.tasks.length > 0 || root.hasPrevious || root.remoteHasMore
     width: parent.width
     implicitHeight: Math.max(previousButton.implicitHeight, pageLabel.implicitHeight, nextButton.implicitHeight)
 
@@ -184,6 +189,7 @@ Column {
       id: pageLabel
       anchors.centerIn: parent
       text: {
+        if (root.tasks.length === 0) return "More completed tasks available"
         var first = root.pageIndex * root.pageSize + 1
         var last = first + root.tasks.length - 1
         return "Page " + (root.pageIndex + 1) + "  ·  " + first + "–" + last
@@ -212,26 +218,10 @@ Column {
     }
   }
 
-  BorderSurface {
-    visible: root.errorText !== ""
+  TaskErrorNotice {
     width: parent.width
-    implicitHeight: errorLabel.implicitHeight + Style.space(12)
-    color: Style.normalFillFor(root.urgent, Color.accent)
-    borderSpec: Border.controlSpec("normal", root.urgent, Color.accent)
-    radius: Style.cornerRadius
-
-    Text {
-      id: errorLabel
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      anchors.leftMargin: Style.space(8)
-      anchors.rightMargin: Style.space(8)
-      text: root.errorText
-      color: root.urgent
-      font.family: root.fontFamily
-      font.pixelSize: Style.font.caption
-      wrapMode: Text.WordWrap
-    }
+    text: root.errorText
+    urgent: root.urgent
+    fontFamily: root.fontFamily
   }
 }

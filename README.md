@@ -9,7 +9,10 @@ A native [Omarchy](https://omarchy.org/) QuickShell plugin for managing [Taskwar
 ## Features
 
 - Ready, Today, Overdue, All, and Done views
-- Quick task creation and completion
+- Quick task creation with optional project, tag, priority, and due-date controls
+- Search across descriptions, projects, tags, and annotations
+- Filter chips for active, blocked, waiting, project, and tag views
+- Task completion with a timed Restore action and restore controls in Done
 - Start and stop Taskwarrior time tracking
 - Inline task editing for description, project, priority, and due date
 - Two-line task previews with a full in-panel detail view
@@ -42,7 +45,10 @@ Taskwarrior is available from Arch's `task` package; if it is missing, the plugi
 - Left-click the bar widget to open the panel.
 - Right-click the widget to refresh.
 - Use the filter buttons to switch task views.
+- Search tasks directly or open the filter control for state, project, and tag chips.
+- Expand the add field to set project, tags, priority, and due date before creating a task.
 - Use the row actions to start or stop tracking, edit, or complete a task.
+- Restore a completion from its confirmation message or from the Done view.
 - Open the detail chevron on any task to read its full description and annotations.
 - Use Previous and Next to move through task pages.
 

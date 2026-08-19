@@ -39,11 +39,13 @@ CursorSurface {
     : (task.start ? Color.accent : (overdue ? urgent : Qt.darker(foreground, 1.35)))
   readonly property bool actionsHot: rowHover.hovered || detailsButton.activeFocus
     || trackingButton.activeFocus || editButton.activeFocus || doneButton.activeFocus
+    || restoreButton.activeFocus
 
   signal detailsRequested(var task)
   signal trackingRequested(var task)
   signal editRequested(var task)
   signal completeRequested(string uuid)
+  signal restoreRequested(string uuid)
 
   implicitHeight: contentRow.implicitHeight + Style.space(18)
   bordered: true
@@ -217,6 +219,21 @@ CursorSurface {
           enabled: !root.busy
           focusable: true
           onClicked: root.completeRequested(String(root.task.uuid || ""))
+        }
+
+        PanelActionButton {
+          id: restoreButton
+          visible: root.completed
+          width: visible ? implicitWidth : 0
+          height: visible ? implicitHeight : 0
+          iconText: "󰕌"
+          tooltipText: "Restore task"
+          foreground: root.foreground
+          hoverColor: Color.accent
+          fontFamily: root.fontFamily
+          enabled: !root.busy
+          focusable: true
+          onClicked: root.restoreRequested(String(root.task.uuid || ""))
         }
       }
 

@@ -11,7 +11,8 @@ Panel {
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property bool editing: taskEditor.active
   readonly property bool viewingDetails: taskDetails.active
-  readonly property bool focusedMode: editing || viewingDetails
+  readonly property bool composing: composer.expanded
+  readonly property bool focusedMode: editing || viewingDetails || composing
 
   function focusDefault() {
     Qt.callLater(function() {
@@ -22,6 +23,8 @@ Panel {
   }
 
   function setFilter(filter) {
+    composer.collapse()
+    taskSearch.collapse()
     taskEditor.end()
     taskDetails.end()
     controller.setFilter(filter)
@@ -66,6 +69,8 @@ Panel {
       controller.checkAvailability()
       focusDefault()
     } else {
+      composer.collapse()
+      taskSearch.collapse()
       taskEditor.end()
       taskDetails.end()
     }
@@ -218,13 +223,43 @@ Panel {
 
         TaskComposer {
           id: composer
-          visible: controller.taskAvailable && !root.focusedMode && controller.currentFilter !== "done"
+          visible: controller.taskAvailable && !root.editing && !root.viewingDetails
+            && controller.currentFilter !== "done"
           width: parent.width
+          busy: controller.busy
+          projectSuggestions: controller.projectSuggestions
+          tagSuggestions: controller.tagSuggestions
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          onSubmitRequested: function(draft) { controller.addTask(draft) }
+          onCloseRequested: root.close()
+        }
+
+        TaskSearch {
+          id: taskSearch
+          visible: controller.taskAvailable && !root.focusedMode
+          width: parent.width
+          query: controller.searchText
+          filterKind: controller.taskFilterKind
+          filterValue: controller.taskFilterValue
+          projects: controller.projectSuggestions
+          tags: controller.tagSuggestions
+          completed: controller.currentFilter === "done"
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          onSearchChanged: function(text) { controller.setSearch(text) }
+          onFilterChanged: function(kind, value) { controller.setTaskFilter(kind, value) }
+          onCloseRequested: root.close()
+        }
+
+        TaskActionNotice {
+          width: parent.width
+          task: controller.taskAvailable && !root.focusedMode ? controller.restorableTask : null
           busy: controller.busy
           foreground: root.foreground
           fontFamily: root.fontFamily
-          onSubmitRequested: function(description) { controller.addTask(description) }
-          onCloseRequested: root.close()
+          onRestoreRequested: function(uuid) { controller.restoreTask(uuid) }
+          onDismissRequested: controller.dismissRestore()
         }
 
         TaskEditor {
@@ -248,29 +283,14 @@ Panel {
           onTrackingRequested: function(task) { controller.toggleTracking(task) }
           onEditRequested: function(task) { root.startEdit(task) }
           onCompleteRequested: function(uuid) { controller.completeTask(uuid) }
+          onRestoreRequested: function(uuid) { controller.restoreTask(uuid) }
         }
 
-        BorderSurface {
-          visible: root.focusedMode && controller.errorText !== ""
+        TaskErrorNotice {
           width: parent.width
-          implicitHeight: editorError.implicitHeight + Style.space(12)
-          color: Style.normalFillFor(root.urgent, Color.accent)
-          borderSpec: Border.controlSpec("normal", root.urgent, Color.accent)
-          radius: Style.cornerRadius
-
-          Text {
-            id: editorError
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin: Style.space(8)
-            anchors.rightMargin: Style.space(8)
-            text: controller.errorText
-            color: root.urgent
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.caption
-            wrapMode: Text.WordWrap
-          }
+          text: root.focusedMode ? controller.errorText : ""
+          urgent: root.urgent
+          fontFamily: root.fontFamily
         }
 
         TaskList {
@@ -288,6 +308,7 @@ Panel {
           hasPrevious: controller.hasPrevious
           hasNext: controller.hasNext
           remoteHasMore: controller.currentFilter === "done" && controller.completedHasMore
+          constrained: controller.constrained
           foreground: root.foreground
           urgent: root.urgent
           fontFamily: root.fontFamily
@@ -297,6 +318,7 @@ Panel {
           onTrackingRequested: function(task) { controller.toggleTracking(task) }
           onEditRequested: function(task) { root.startEdit(task) }
           onCompleteRequested: function(uuid) { controller.completeTask(uuid) }
+          onRestoreRequested: function(uuid) { controller.restoreTask(uuid) }
         }
       }
     }

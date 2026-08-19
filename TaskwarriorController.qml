@@ -14,6 +14,11 @@ Item {
   property string completedRefreshError: ""
   property string actionError: ""
   property string actionKind: ""
+  property string searchText: ""
+  property string taskFilterKind: ""
+  property string taskFilterValue: ""
+  property var completingTask: null
+  property var restorableTask: null
   property bool taskAvailable: false
   property bool availabilityKnown: false
   property bool completedLoaded: false
@@ -26,9 +31,15 @@ Item {
   readonly property bool busy: actionProc.running
   readonly property bool installRunning: installProc.running
   readonly property bool completedLoading: completedRefreshProc.running
-  readonly property var matchingTasks: currentFilter === "done"
+  readonly property var baseMatchingTasks: currentFilter === "done"
     ? completedTasks
     : Model.filterTasks(allTasks, currentFilter, Date.now())
+  readonly property var matchingTasks: Model.refineTasks(
+    baseMatchingTasks, searchText, taskFilterKind, taskFilterValue, allTasks, Date.now())
+  readonly property var metadataTasks: allTasks.concat(completedTasks)
+  readonly property var projectSuggestions: Model.projectNames(metadataTasks)
+  readonly property var tagSuggestions: Model.tagNames(metadataTasks)
+  readonly property bool constrained: searchText.trim() !== "" || taskFilterKind !== ""
   readonly property var page: Model.paginate(matchingTasks, pageIndex, pageSize)
   readonly property int pageStart: page.start
   readonly property var tasks: page.tasks
@@ -96,9 +107,32 @@ Item {
 
   function setFilter(filter) {
     currentFilter = filter
+    if (["active", "blocked", "waiting"].indexOf(taskFilterKind) >= 0) {
+      taskFilterKind = ""
+      taskFilterValue = ""
+    }
     pageIndex = 0
     advanceAfterCompletedRefresh = false
     if (filter === "done") refreshCompleted()
+  }
+
+  function setSearch(text) {
+    searchText = String(text || "")
+    pageIndex = 0
+  }
+
+  function setTaskFilter(kind, value) {
+    var nextKind = String(kind || "")
+    var nextValue = String(value || "")
+    if (taskFilterKind === nextKind && taskFilterValue === nextValue) {
+      nextKind = ""
+      nextValue = ""
+    }
+    if (["active", "blocked", "waiting"].indexOf(nextKind) >= 0
+        && currentFilter !== "all") currentFilter = "all"
+    taskFilterKind = nextKind
+    taskFilterValue = nextValue
+    pageIndex = 0
   }
 
   function previousPage() {
@@ -122,16 +156,40 @@ Item {
     if (pageIndex > maximum && !(currentFilter === "done" && completedHasMore)) pageIndex = maximum
   }
 
-  function addTask(description) {
-    description = String(description || "").trim()
-    if (!description) return
-    runAction(["task", "rc.confirmation=off", "rc.verbose=nothing", "add", description], "add")
+  function addTask(draft) {
+    var result = Model.buildAddArguments(draft)
+    if (result.error) {
+      errorText = result.error
+      return
+    }
+    var command = ["task", "rc.confirmation=off", "rc.verbose=nothing"]
+    for (var i = 0; i < result.args.length; i++) command.push(result.args[i])
+    runAction(command, "add")
   }
 
   function completeTask(uuid) {
-    if (!uuid) return
+    if (!uuid || busy) return
+    completingTask = taskByUuid(uuid) || { uuid: String(uuid), description: "Task" }
     runAction(["task", "rc.confirmation=off", "rc.verbose=nothing", String(uuid), "done"], "done")
   }
+
+  function restoreTask(uuid) {
+    if (!uuid || busy) return
+    runAction([
+      "task", "rc.confirmation=off", "rc.verbose=nothing",
+      String(uuid), "modify", "status:pending"
+    ], "restore")
+  }
+
+  function taskByUuid(uuid) {
+    var target = String(uuid || "")
+    var tasks = allTasks.concat(completedTasks)
+    for (var i = 0; i < tasks.length; i++)
+      if (String(tasks[i].uuid || "") === target) return tasks[i]
+    return null
+  }
+
+  function dismissRestore() { restorableTask = null }
 
   function toggleTracking(task) {
     if (!task || !task.uuid) return
@@ -184,7 +242,9 @@ Item {
     completedError = result.error
     if (advanceAfterCompletedRefresh) {
       advanceAfterCompletedRefresh = false
-      if (pageStart + pageSize < result.tasks.length) pageIndex++
+      var refined = Model.refineTasks(
+        result.tasks, searchText, taskFilterKind, taskFilterValue, allTasks, Date.now())
+      if (pageStart + pageSize < refined.length) pageIndex++
     }
     clampPage()
   }
@@ -213,7 +273,9 @@ Item {
 
   Process {
     id: refreshProc
-    command: ["task", "rc.verbose=nothing", "status:pending", "export"]
+    command: [
+      "task", "rc.verbose=nothing", "(", "status:pending", "or", "status:waiting", ")", "export"
+    ]
     onExited: function(exitCode) {
       if (exitCode !== 0) root.errorText = root.refreshError || "Could not read Taskwarrior tasks"
     }
@@ -241,10 +303,18 @@ Item {
     id: actionProc
     onExited: function(exitCode) {
       if (exitCode === 0) {
-        if (root.actionKind === "done") root.completedLoaded = false
+        if (root.actionKind === "done") {
+          root.completedLoaded = false
+          root.restorableTask = root.completingTask
+        } else if (root.actionKind === "restore") {
+          root.completedLoaded = false
+          root.restorableTask = null
+        }
+        root.completingTask = null
         root.actionSucceeded(root.actionKind)
         Qt.callLater(root.refresh)
       } else {
+        root.completingTask = null
         root.errorText = root.actionError || "Taskwarrior command failed"
       }
     }

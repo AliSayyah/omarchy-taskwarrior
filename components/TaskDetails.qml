@@ -20,6 +20,7 @@ Column {
   signal trackingRequested(var task)
   signal editRequested(var task)
   signal completeRequested(string uuid)
+  signal restoreRequested(string uuid)
 
   function begin(item) {
     task = item
@@ -229,6 +230,27 @@ Column {
       focusable: true
       enabled: !root.busy
       onClicked: root.completeRequested(String(root.task ? root.task.uuid || "" : ""))
+    }
+  }
+
+  Row {
+    visible: root.completed
+    width: parent.width
+    spacing: Style.space(8)
+
+    Item { width: parent.width - restoreButton.width; height: 1 }
+
+    Button {
+      id: restoreButton
+      text: root.busy ? "Restoring…" : "Restore"
+      iconText: "󰕌"
+      foreground: root.foreground
+      fontFamily: root.fontFamily
+      selected: true
+      bordered: true
+      focusable: true
+      enabled: !root.busy
+      onClicked: root.restoreRequested(String(root.task ? root.task.uuid || "" : ""))
     }
   }
 }
