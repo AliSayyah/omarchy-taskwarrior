@@ -43,6 +43,7 @@ BorderSurface {
     Text {
       Layout.fillWidth: true
       text: root.task ? "Completed · " + String(root.task.description || "Task") : ""
+      textFormat: Text.PlainText
       color: root.foreground
       font.family: root.fontFamily
       font.pixelSize: Style.font.bodySmall

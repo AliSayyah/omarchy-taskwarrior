@@ -91,6 +91,7 @@ Column {
       anchors.leftMargin: Style.space(10)
       anchors.rightMargin: Style.space(10)
       text: root.task ? String(root.task.description || "Untitled task") : ""
+      textFormat: Text.PlainText
       color: root.completed ? Qt.darker(root.foreground, 1.3) : root.foreground
       font.family: root.fontFamily
       font.pixelSize: Style.font.subtitle
@@ -176,6 +177,7 @@ Column {
           anchors.leftMargin: Style.space(8)
           anchors.rightMargin: Style.space(8)
           text: String(modelData.description || "")
+          textFormat: Text.PlainText
           color: Qt.darker(root.foreground, 1.25)
           font.family: root.fontFamily
           font.pixelSize: Style.font.bodySmall

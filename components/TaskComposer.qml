@@ -149,9 +149,9 @@ Column {
 
         Repeater {
           model: root.visibleProjects
-          delegate: Button {
+          delegate: PlainButton {
             required property string modelData
-            text: "󰏗 " + modelData
+            label: "󰏗 " + modelData
             selected: root.project === modelData
             bordered: true
             focusable: true

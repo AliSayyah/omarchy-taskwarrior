@@ -102,9 +102,9 @@ Column {
 
     Repeater {
       model: root.value
-      delegate: Button {
+      delegate: PlainButton {
         required property string modelData
-        text: "+" + modelData + "  ×"
+        label: "+" + modelData + "  ×"
         tooltipText: "Remove tag"
         selected: true
         bordered: true
@@ -127,9 +127,9 @@ Column {
 
     Repeater {
       model: root.visibleSuggestions
-      delegate: Button {
+      delegate: PlainButton {
         required property string modelData
-        text: "+" + modelData
+        label: "+" + modelData
         bordered: true
         focusable: true
         foreground: root.foreground

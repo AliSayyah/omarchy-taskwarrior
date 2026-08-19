@@ -16,7 +16,8 @@ const components = [
   "TaskSearch.qml",
   "TaskActionNotice.qml",
   "TagPicker.qml",
-  "TaskErrorNotice.qml"
+  "TaskErrorNotice.qml",
+  "PlainButton.qml"
 ]
 
 assert.ok(panel.split("\n").length < 350, "Panel.qml should remain a thin composition root")
@@ -50,5 +51,23 @@ assert.ok(composer.includes("DateTimePicker"), "Smart add must expose the native
 const search = fs.readFileSync(path.join(root, "components", "TaskSearch.qml"), "utf8")
 assert.ok(search.includes("Search tasks, projects, tags, or notes"), "Task search must cover visible metadata")
 assert.ok(search.includes('kind: "blocked"') && search.includes('kind: "waiting"'), "Task filters must expose blocked and waiting states")
+
+const plainTextRenderers = {
+  "StatusPill.qml": 1,
+  "TaskCard.qml": 2,
+  "TaskDetails.qml": 2,
+  "TaskActionNotice.qml": 1,
+  "TaskErrorNotice.qml": 1,
+  "PlainButton.qml": 1
+}
+for (const [file, minimum] of Object.entries(plainTextRenderers)) {
+  const source = fs.readFileSync(path.join(root, "components", file), "utf8")
+  const count = source.match(/textFormat: Text\.PlainText/g)?.length ?? 0
+  assert.ok(count >= minimum, `${file} must render task-controlled content as plain text`)
+}
+for (const file of ["TaskComposer.qml", "TagPicker.qml", "TaskSearch.qml"]) {
+  const source = fs.readFileSync(path.join(root, "components", file), "utf8")
+  assert.ok(source.includes("PlainButton"), `${file} must use plain-text metadata chips`)
+}
 
 console.log("taskwarrior structure checks passed")

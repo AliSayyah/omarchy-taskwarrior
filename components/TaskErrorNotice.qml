@@ -23,6 +23,7 @@ BorderSurface {
     anchors.leftMargin: Style.space(8)
     anchors.rightMargin: Style.space(8)
     text: root.text
+    textFormat: Text.PlainText
     color: root.urgent
     font.family: root.fontFamily
     font.pixelSize: Style.font.caption

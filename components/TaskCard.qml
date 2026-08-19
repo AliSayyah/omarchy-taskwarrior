@@ -93,6 +93,7 @@ CursorSurface {
         id: descriptionText
         Layout.fillWidth: true
         text: root.task.description || "Untitled task"
+        textFormat: Text.PlainText
         color: root.completed ? Qt.darker(root.foreground, 1.3) : root.foreground
         font.family: root.fontFamily
         font.pixelSize: Style.font.subtitle
@@ -139,6 +140,7 @@ CursorSurface {
           visible: root.contextText !== ""
           Layout.fillWidth: true
           text: root.contextText
+          textFormat: Text.PlainText
           color: Qt.darker(root.foreground, 1.45)
           font.family: root.fontFamily
           font.pixelSize: Style.font.caption

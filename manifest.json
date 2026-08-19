@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "taskwarrior",
   "name": "Taskwarrior",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "author": "Ali Sayyah",
   "description": "Manage Taskwarrior tasks from the Omarchy bar",
   "license": "MIT",

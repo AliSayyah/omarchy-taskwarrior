@@ -19,6 +19,7 @@ BorderSurface {
     id: label
     anchors.centerIn: parent
     text: root.text
+    textFormat: Text.PlainText
     color: root.tint
     font.family: root.fontFamily
     font.pixelSize: Style.font.caption

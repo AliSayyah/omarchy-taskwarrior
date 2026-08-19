@@ -155,9 +155,9 @@ Column {
 
         Repeater {
           model: root.projects.slice(0, 8)
-          delegate: Button {
+          delegate: PlainButton {
             required property string modelData
-            text: "󰏗 " + modelData
+            label: "󰏗 " + modelData
             selected: root.filterKind === "project" && root.filterValue === modelData
             bordered: true
             focusable: true
@@ -186,9 +186,9 @@ Column {
 
         Repeater {
           model: root.tags.slice(0, 8)
-          delegate: Button {
+          delegate: PlainButton {
             required property string modelData
-            text: "+" + modelData
+            label: "+" + modelData
             selected: root.filterKind === "tag" && root.filterValue === modelData
             bordered: true
             focusable: true
