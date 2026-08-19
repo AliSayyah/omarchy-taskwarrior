@@ -2,6 +2,8 @@
 
 A native [Omarchy](https://omarchy.org/) QuickShell plugin for managing [Taskwarrior](https://taskwarrior.org/) from the bar.
 
+![Omarchy Taskwarrior panel showing task filters, quick add, task actions, and pagination](assets/omarchy-taskwarrior.png)
+
 ## Features
 
 - Ready, Today, Overdue, All, and Done views
