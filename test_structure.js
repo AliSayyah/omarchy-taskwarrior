@@ -32,6 +32,8 @@ const taskCard = fs.readFileSync(path.join(root, "components", "TaskCard.qml"), 
 assert.ok(taskCard.includes("maximumLineCount: 2"), "Task cards must cap previews at two lines")
 assert.ok(taskCard.includes("id: detailsButton"), "Every task card must expose the details action")
 assert.ok(!taskCard.includes("detailsAvailable"), "Task details must not depend on truncation")
+assert.ok(taskCard.includes("visible: root.hasMetadata"), "Metadata row visibility must derive from task data")
+assert.ok(!taskCard.includes("priorityPill.visible || duePill.visible"), "Metadata visibility must not depend on hidden children")
 assert.match(controller, /property int pageSize: 5/, "Two-line task cards must use five-item pages")
 
 console.log("taskwarrior structure checks passed")

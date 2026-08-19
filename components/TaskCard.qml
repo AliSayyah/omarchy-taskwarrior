@@ -31,6 +31,8 @@ CursorSurface {
       parts.push(task.tags.map(function(tag) { return "+" + tag }).join(" "))
     return parts.join("  ·  ")
   }
+  readonly property bool hasMetadata: priorityLabel !== "" || contextText !== ""
+    || (completed ? !!task.end : !!task.due)
   readonly property string stateGlyph: completed ? "󰄬" : (task.start ? "󰐊" : (overdue ? "󰃰" : "󰄱"))
   readonly property color stateColor: completed
     ? Qt.darker(foreground, 1.45)
@@ -106,7 +108,7 @@ CursorSurface {
       }
 
       RowLayout {
-        visible: priorityPill.visible || duePill.visible || contextLabel.visible
+        visible: root.hasMetadata
         Layout.fillWidth: true
         spacing: Style.space(6)
 
