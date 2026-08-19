@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+plugin_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+manifest="$plugin_root/manifest.json"
+
+node "$plugin_root/test_model.js"
+node "$plugin_root/test_structure.js"
+
+jq -e '
+  .schemaVersion == 1
+  and (.id | type == "string" and length > 0)
+  and (.name | type == "string" and length > 0)
+  and (.version | type == "string" and test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))
+  and (.kinds | type == "array" and index("bar-widget") != null)
+  and (.entryPoints | type == "object")
+  and (.entryPoints.barWidget | type == "string" and length > 0)
+  and (.barWidget.defaultSection | IN("left", "center", "right"))
+' "$manifest" >/dev/null
+
+while IFS= read -r entry_point; do
+  [[ -n $entry_point && $entry_point != /* && $entry_point != *".."* ]]
+  [[ -f "$plugin_root/$entry_point" ]]
+done < <(jq -r '.entryPoints[]' "$manifest")
+
+if find "$plugin_root" -name .git -prune -o -type l -print -quit | grep -q .; then
+  echo "symlinks are not allowed in the plugin" >&2
+  exit 1
+fi
+
+for qml_file in "$plugin_root"/*.qml "$plugin_root"/components/*.qml; do
+  qmlformat "$qml_file" >/dev/null
+done
+
+echo "portable CI checks passed"

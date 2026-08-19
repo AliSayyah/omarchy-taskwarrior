@@ -3,11 +3,9 @@ set -euo pipefail
 
 plugin_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 
-node "$plugin_root/test_model.js"
-node "$plugin_root/test_structure.js"
+"$plugin_root/scripts/check-ci"
 
 for qml_file in "$plugin_root"/*.qml "$plugin_root"/components/*.qml; do
-  qmlformat "$qml_file" >/dev/null
   qmllint -I /usr/share/omarchy/shell -I "$plugin_root" "$qml_file"
 done
 

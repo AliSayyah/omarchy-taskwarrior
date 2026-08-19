@@ -1,5 +1,7 @@
 # Omarchy Taskwarrior
 
+[![CI/CD](https://github.com/AliSayyah/omarchy-taskwarrior/actions/workflows/ci.yml/badge.svg)](https://github.com/AliSayyah/omarchy-taskwarrior/actions/workflows/ci.yml)
+
 A native [Omarchy](https://omarchy.org/) QuickShell plugin for managing [Taskwarrior](https://taskwarrior.org/) from the bar.
 
 ![Omarchy Taskwarrior panel showing task filters, quick add, task actions, and pagination](assets/omarchy-taskwarrior.png)
@@ -75,6 +77,8 @@ Run all local checks on Omarchy:
 ```bash
 ./scripts/check
 ```
+
+Pull requests and pushes run portable model, structure, manifest, shell, and QML syntax checks in a clean Arch Linux container. A validated push to `main` publishes a GitHub Release for `manifest.json`'s version when that release does not already exist.
 
 Saved QML files hot-reload. If QuickShell retains an older component instance, run:
 
