@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "taskwarrior",
+  "name": "Taskwarrior",
+  "version": "1.6.0",
+  "author": "Ali Sayyah",
+  "description": "Manage Taskwarrior tasks from the Omarchy bar",
+  "license": "MIT",
+  "homepage": "https://github.com/AliSayyah/omarchy-taskwarrior",
+  "repository": "https://github.com/AliSayyah/omarchy-taskwarrior",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "Taskwarrior",
+    "description": "View, create, edit, track, and complete Taskwarrior tasks",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
