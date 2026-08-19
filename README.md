@@ -20,7 +20,17 @@ A native [Omarchy](https://omarchy.org/) QuickShell plugin for managing [Taskwar
 omarchy plugin add https://github.com/AliSayyah/omarchy-taskwarrior.git --enable
 ```
 
-The widget defaults to the right section of the bar. Taskwarrior is available from Arch's `task` package; if it is missing, the plugin offers to install it through `omarchy pkg add task`.
+Run this from an interactive terminal: Omarchy will ask whether to place the widget on the **left**, **center**, or **right** of the bar. Right is preselected as the default, but you can choose any section.
+
+For an existing installation, move it at any time:
+
+```bash
+omarchy bar move taskwarrior --section left
+omarchy bar move taskwarrior --section center
+omarchy bar move taskwarrior --section right
+```
+
+Taskwarrior is available from Arch's `task` package; if it is missing, the plugin offers to install it through `omarchy pkg add task`.
 
 ## Use
 
