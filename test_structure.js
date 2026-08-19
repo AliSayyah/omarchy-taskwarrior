@@ -30,7 +30,8 @@ assert.match(taskList, /enabled: root\.hasNext && !root\.loading/, "Next must di
 
 const taskCard = fs.readFileSync(path.join(root, "components", "TaskCard.qml"), "utf8")
 assert.ok(taskCard.includes("maximumLineCount: 2"), "Task cards must cap previews at two lines")
-assert.ok(taskCard.includes("descriptionText.truncated"), "Task cards must detect truncated descriptions")
+assert.ok(taskCard.includes("id: detailsButton"), "Every task card must expose the details action")
+assert.ok(!taskCard.includes("detailsAvailable"), "Task details must not depend on truncation")
 assert.match(controller, /property int pageSize: 5/, "Two-line task cards must use five-item pages")
 
 console.log("taskwarrior structure checks passed")

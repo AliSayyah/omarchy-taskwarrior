@@ -35,7 +35,6 @@ CursorSurface {
   readonly property color stateColor: completed
     ? Qt.darker(foreground, 1.45)
     : (task.start ? Color.accent : (overdue ? urgent : Qt.darker(foreground, 1.35)))
-  readonly property bool detailsAvailable: descriptionText.truncated
   readonly property bool actionsHot: rowHover.hovered || detailsButton.activeFocus
     || trackingButton.activeFocus || editButton.activeFocus || doneButton.activeFocus
 
@@ -101,8 +100,7 @@ CursorSurface {
 
         MouseArea {
           anchors.fill: parent
-          enabled: root.detailsAvailable
-          cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+          cursorShape: Qt.PointingHandCursor
           onClicked: root.detailsRequested(root.task)
         }
       }
@@ -147,7 +145,6 @@ CursorSurface {
     }
 
     BorderSurface {
-      visible: !root.completed || root.detailsAvailable
       implicitWidth: actionRow.implicitWidth + Style.space(8)
       implicitHeight: actionRow.implicitHeight + Style.space(6)
       color: root.actionsHot
@@ -167,9 +164,6 @@ CursorSurface {
 
         PanelActionButton {
           id: detailsButton
-          visible: root.detailsAvailable
-          width: visible ? implicitWidth : 0
-          height: visible ? implicitHeight : 0
           iconText: "󰅀"
           tooltipText: "View full task"
           foreground: root.foreground

@@ -41,7 +41,7 @@ Taskwarrior is available from Arch's `task` package; if it is missing, the plugi
 - Right-click the widget to refresh.
 - Use the filter buttons to switch task views.
 - Use the row actions to start or stop tracking, edit, or complete a task.
-- Open the detail chevron on a truncated task to read its full description and annotations.
+- Open the detail chevron on any task to read its full description and annotations.
 - Use Previous and Next to move through task pages.
 
 ## Update
