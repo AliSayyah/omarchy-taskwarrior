@@ -24,5 +24,7 @@ const taskList = fs.readFileSync(path.join(root, "components", "TaskList.qml"), 
 assert.ok(taskList.includes("previousPageRequested"), "Task list must expose previous-page navigation")
 assert.ok(taskList.includes("nextPageRequested"), "Task list must expose next-page navigation")
 assert.ok(!taskList.includes("Flickable {"), "Task list pagination must not depend on scrolling")
+assert.match(taskList, /enabled: root\.hasPrevious && !root\.loading/, "Previous must disable without a previous page")
+assert.match(taskList, /enabled: root\.hasNext && !root\.loading/, "Next must disable without a next page")
 
 console.log("taskwarrior structure checks passed")

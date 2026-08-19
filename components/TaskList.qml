@@ -157,7 +157,7 @@ Column {
   }
 
   Item {
-    visible: root.tasks.length > 0 && (root.hasPrevious || root.hasNext)
+    visible: root.tasks.length > 0
     width: parent.width
     implicitHeight: Math.max(previousButton.implicitHeight, pageLabel.implicitHeight, nextButton.implicitHeight)
 
@@ -172,7 +172,10 @@ Column {
       bordered: true
       focusable: true
       enabled: root.hasPrevious && !root.loading
-      onClicked: root.previousPageRequested()
+      opacity: enabled ? 1 : 0.32
+      onClicked: if (enabled) root.previousPageRequested()
+
+      Behavior on opacity { NumberAnimation { duration: 120 } }
     }
 
     Text {
@@ -200,7 +203,10 @@ Column {
       bordered: true
       focusable: true
       enabled: root.hasNext && !root.loading
-      onClicked: root.nextPageRequested()
+      opacity: enabled ? 1 : 0.32
+      onClicked: if (enabled) root.nextPageRequested()
+
+      Behavior on opacity { NumberAnimation { duration: 120 } }
     }
   }
 
